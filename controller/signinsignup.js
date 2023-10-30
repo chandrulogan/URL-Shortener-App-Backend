@@ -179,10 +179,18 @@ const updatePassword = async (req, res) => {
 
         if (user) {
             if (user.isVerified === true) {
-                await collection.updateOne({ email }, { $set: { password: req.body.password, confirmPassword: req.body.confirmPassword, isVerified: false } });
+                // Hash the new password before updating it
+                const hashedPassword = await hashPassword(password);
+                await collection.updateOne({ email }, {
+                    $set: {
+                        password: hashedPassword,
+                        confirmPassword: req.body.confirmPassword,
+                        isVerified: false
+                    }
+                });
                 return res.status(200).json({ Response: 'Password Changed Successfully' });
             } else {
-                return res.status(401).json({ Response: 'Otp Verification Required' });
+                return res.status(401).json({ Response: 'OTP Verification Required' });
             }
         } else {
             return res.status(401).json({ Response: 'User Not Available' });
@@ -191,7 +199,6 @@ const updatePassword = async (req, res) => {
         console.log(error);
     }
 }
-
 
 module.exports = {
     signup,
